@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vellum — The Local-First Vector Design Tool for macOS</title>
+  <meta name="description" content="A fast, local-first vector design editor powered by WebGPU, embedded SQLite, and Tauri v2. Uses only 87MB RAM. No accounts, no cloud lock-in.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b6cff' stroke-width='2'%3E%3Cpath d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --bg: #0d0e12;
+      --bg-card: #15171e;
+      --bg-card-hover: #1c1e28;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(139, 108, 255, 0.4);
+      --accent: #8b6cff;
+      --accent-glow: rgba(139, 108, 255, 0.25);
+      --accent-secondary: #4ade80;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* Background Ambient Glows */
+    .glow-top {
+      position: absolute;
+      top: -150px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(139, 108, 255, 0.18) 0%, rgba(13, 14, 18, 0) 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Navigation */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(13, 14, 18, 0.75);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 19px;
+      letter-spacing: -0.3px;
+    }
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #8b6cff, #6342e8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 9px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #8b6cff, #744fe8);
+      color: #fff;
+      box-shadow: 0 4px 18px rgba(139, 108, 255, 0.35);
+    }
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 22px rgba(139, 108, 255, 0.5);
+    }
+    .btn-secondary {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255,255,255,0.2);
+    }
+    .btn-lg {
+      padding: 14px 26px;
+      font-size: 16px;
+      border-radius: 11px;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 90px 0 60px;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 30px;
+      background: rgba(139, 108, 255, 0.12);
+      border: 1px solid rgba(139, 108, 255, 0.3);
+      font-size: 13px;
+      color: #bfa8ff;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+    .hero-badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-secondary);
+      box-shadow: 0 0 8px var(--accent-secondary);
+    }
+    .hero h1 {
+      font-size: clamp(40px, 6vw, 68px);
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.12;
+      margin-bottom: 24px;
+    }
+    .hero h1 span {
+      background: linear-gradient(135deg, #fff 40%, #bca6ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: clamp(17px, 2.2vw, 20px);
+      color: var(--text-muted);
+      max-width: 720px;
+      margin: 0 auto 36px;
+    }
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .hero-subtext {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* App Preview / Frame */
+    .app-preview-wrap {
+      margin: 50px auto 0;
+      position: relative;
+      border-radius: 16px;
+      padding: 8px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 100%);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 100px rgba(139, 108, 255, 0.15);
+    }
+    .app-preview-inner {
+      background: #18191f;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+      position: relative;
+    }
+    .window-header {
+      height: 42px;
+      background: #1e1f26;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 8px;
+    }
+    .window-dots {
+      display: flex;
+      gap: 7px;
+    }
+    .window-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+    .window-title {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.2px;
+    }
+    .preview-canvas {
+      height: 460px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(var(--border) 1px, transparent 1px) 0 0 / 20px 20px, #121319;
+      position: relative;
+      overflow: hidden;
+    }
+    .mock-artboard {
+      width: 420px;
+      height: 290px;
+      background: #1e2029;
+      border: 1px solid rgba(139, 108, 255, 0.4);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.5);
+      position: relative;
+    }
+    .mock-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .mock-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--accent);
+    }
+    .mock-pill {
+      height: 12px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.1);
+    }
+    .mock-card {
+      background: #252834;
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .mock-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #8b6cff, #4ade80);
+      flex-shrink: 0;
+    }
+    .preview-badge-overlay {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(20, 22, 30, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #bfa8ff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Stats Banner */
+    .stats-banner {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      padding: 70px 0;
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+    .stat-val {
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: #fff;
+    }
+    .stat-val.accent { color: var(--accent); }
+    .stat-val.green { color: var(--accent-secondary); }
+    .stat-lbl {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Features Grid */
+    .section-header {
+      text-align: center;
+      padding: 80px 0 45px;
+    }
+    .section-tag {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      line-height: 1.2;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-bottom: 80px;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px 28px;
+      transition: all 0.25s ease;
+    }
+    .feature-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-focus);
+      transform: translateY(-3px);
+    }
+    .feature-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(139, 108, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+    .feature-card h3 {
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: -0.3px;
+    }
+    .feature-card p {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    /* Comparison Table */
+    .comp-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow-x: auto;
+      margin: 30px 0 90px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: #13141a;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    td.highlight {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* CTA Section */
+    .cta-box {
+      text-align: center;
+      background: linear-gradient(135deg, rgba(139, 108, 255, 0.12) 0%, rgba(20, 22, 30, 0.9) 100%);
+      border: 1px solid var(--border-focus);
+      border-radius: 24px;
+      padding: 60px 24px;
+      margin-bottom: 90px;
+    }
+    .cta-box h2 {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800;
+      margin-bottom: 16px;
+      letter-spacing: -0.8px;
+    }
+    .cta-box p {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 580px;
+      margin: 0 auto 32px;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: gap;
+    }
+    .footer-links {
+      display: flex;
+      gap: 20px;
+    }
+    .footer-links a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="glow-top"></div>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="container" style="display:flex;align-items:center;justify-content:space-between;width:100%">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <span>Vellum</span>
+      </div>
+
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#benchmarks">Benchmarks</a>
+        <a href="https://github.com/hosseiw/vellum" target="_blank" rel="noopener">GitHub</a>
+        <a href="./editor.html">Web App</a>
+      </div>
+
+      <div class="nav-actions">
+        <a href="./editor.html" class="btn btn-secondary">Open Web App</a>
+        <a href="https://github.com/hosseiw/vellum/releases/download/v0.1.0/Vellum_0.1.0_aarch64.dmg" class="btn btn-primary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download DMG
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="container">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        <span>Version 0.1.0 Released for macOS Apple Silicon</span>
+      </div>
+      <h1><span>The Local-First Vector Design Tool</span><br>built for macOS.</h1>
+      <p>Hardware-accelerated WebGPU rendering with native SQLite persistence. Runs at 60 FPS on 87 MB of RAM. Zero cloud trackers. No accounts required.</p>
+      
+      <div class="hero-actions">
+        <a href="https://github.com/hosseiw/vellum/releases/download/v0.1.0/Vellum_0.1.0_aarch64.dmg" class="btn btn-primary btn-lg">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download for Mac (Apple Silicon)
+        </a>
+        <a href="./editor.html" class="btn btn-secondary btn-lg">
+          Try Live in Browser →
+        </a>
+      </div>
+      <div class="hero-subtext">3.2 MB DMG &middot; macOS 11.0+ &middot; Open Source (MIT)</div>
+
+      <!-- App Mockup Preview -->
+      <div class="app-preview-wrap">
+        <div class="app-preview-inner">
+          <div class="window-header">
+            <div class="window-dots">
+              <span class="window-dot dot-red"></span>
+              <span class="window-dot dot-yellow"></span>
+              <span class="window-dot dot-green"></span>
+            </div>
+            <div class="window-title">Vellum — Forma · Product design</div>
+          </div>
+          <div class="preview-canvas">
+            <div class="mock-artboard">
+              <div class="mock-header">
+                <div class="mock-avatar"></div>
+                <div style="display:flex;gap:8px">
+                  <div class="mock-pill" style="width:60px"></div>
+                  <div class="mock-pill" style="width:40px"></div>
+                </div>
+              </div>
+              <div class="mock-pill" style="width:140px;height:18px;margin-bottom:12px;background:rgba(255,255,255,0.2)"></div>
+              <div class="mock-pill" style="width:220px;height:12px;margin-bottom:20px"></div>
+              <div class="mock-card">
+                <div class="mock-icon"></div>
+                <div style="flex:1">
+                  <div class="mock-pill" style="width:90px;height:12px;margin-bottom:8px"></div>
+                  <div class="mock-pill" style="width:130px;height:8px"></div>
+                </div>
+              </div>
+            </div>
+            <div class="preview-badge-overlay">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              <span>60 FPS &middot; 87 MB RAM &middot; WebGPU Metal</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats Banner -->
+  <div class="container">
+    <div class="stats-banner" id="benchmarks">
+      <div>
+        <div class="stat-val accent">87 MB</div>
+        <div class="stat-lbl">Memory Usage (1% RAM)</div>
+      </div>
+      <div>
+        <div class="stat-val green">&lt; 0.4s</div>
+        <div class="stat-lbl">Cold Launch Time</div>
+      </div>
+      <div>
+        <div class="stat-val">3.2 MB</div>
+        <div class="stat-lbl">Total Installer Size</div>
+      </div>
+      <div>
+        <div class="stat-val accent">60 FPS</div>
+        <div class="stat-lbl">Hardware WebGPU Acceleration</div>
+      </div>
+      <div>
+        <div class="stat-val green">100%</div>
+        <div class="stat-lbl">Local-First (Zero Cloud)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features Grid -->
+  <section class="container" id="features">
+    <div class="section-header">
+      <div class="section-tag">Engineered for Performance</div>
+      <h2 class="section-title">Everything you need to design.<br>Nothing slowing you down.</h2>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon-box">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h3>WebGPU Hardware Acceleration</h3>
+        <p>Instanced GPU quad rendering and analytical signed-distance field (SDF) shaders handle 5,000+ primitives with zero stutter or dropped frames.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-box">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </div>
+        <h3>Embedded SQLite Storage</h3>
+        <p>Your work is saved locally into high-performance indexed SQLite and synced directly to <code>~/Documents/Vellum</code>. No loss, no accounts, and instant project switching.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-box">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+        </div>
+        <h3>Professional Vector Editing</h3>
+        <p>Bézier pen tool with smooth/broken tangent control, auto-layout flexbox engine, reusable components with overrides, and live CSS inspection.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-box">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h3>100% Private & Offline</h3>
+        <p>Vellum makes zero network requests. No user tracking, no telemetry, and no mandatory cloud updates. Your confidential designs stay on your hardware.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-box">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <h3>Native <code>.vellum</code> Document Format</h3>
+        <p>Registered natively in macOS Finder. Double-click any <code>.vellum</code> file to open it. Pure, portable open JSON format readable by any script.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-box">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <h3>Dual-Mode: Desktop & Browser</h3>
+        <p>Runs natively as an installed Mac app or as a zero-dependency static web app on GitHub Pages via IndexedDB fallback.</p>
+      </div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div class="section-header" style="padding-top:20px">
+      <div class="section-tag">Architecture Comparison</div>
+      <h2 class="section-title">Why Vellum is Radically Lighter</h2>
+    </div>
+
+    <div class="comp-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Architecture Dimension</th>
+            <th>Vellum (Tauri v2 + SQLite)</th>
+            <th>Typical Electron App</th>
+            <th>Web SaaS (Figma)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Memory (RAM)</strong></td>
+            <td class="highlight">~87 MB</td>
+            <td>450 MB – 800 MB</td>
+            <td>600 MB – 1.5 GB</td>
+          </tr>
+          <tr>
+            <td><strong>Idle CPU Usage</strong></td>
+            <td class="highlight">0.0% – 0.2%</td>
+            <td>2.0% – 5.0%</td>
+            <td>1.5% – 4.0%</td>
+          </tr>
+          <tr>
+            <td><strong>Installer Size</strong></td>
+            <td class="highlight">3.2 MB (DMG)</td>
+            <td>160 MB – 220 MB</td>
+            <td>N/A (Browser cache)</td>
+          </tr>
+          <tr>
+            <td><strong>Storage Engine</strong></td>
+            <td class="highlight">Embedded SQLite + ~/Documents</td>
+            <td>Local file / JSON</td>
+            <td>Cloud-only proprietary server</td>
+          </tr>
+          <tr>
+            <td><strong>Account Requirement</strong></td>
+            <td class="highlight">None (100% anonymous)</td>
+            <td>Optional</td>
+            <td>Mandatory account & login</td>
+          </tr>
+          <tr>
+            <td><strong>Offline Capability</strong></td>
+            <td class="highlight">Full offline first-class</td>
+            <td>Varies</td>
+            <td>Limited / Read-only</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- CTA Box -->
+    <div class="cta-box">
+      <h2>Make room for ideas.</h2>
+      <p>Download the native macOS app or jump straight into the web editor with no setup.</p>
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+        <a href="https://github.com/hosseiw/vellum/releases/download/v0.1.0/Vellum_0.1.0_aarch64.dmg" class="btn btn-primary btn-lg">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Vellum for macOS (DMG)
+        </a>
+        <a href="./editor.html" class="btn btn-secondary btn-lg">
+          Launch Web Editor
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container" style="display:flex;justify-content:space-between;align-items:center;width:100%">
+      <div>
+        <strong>Vellum</strong> &middot; Released under the <a href="LICENSE" style="text-decoration:underline">MIT License</a>.
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/hosseiw/vellum" target="_blank" rel="noopener">GitHub Repository</a>
+        <a href="https://github.com/hosseiw/vellum/releases" target="_blank" rel="noopener">Releases</a>
+        <a href="./editor.html">Web App</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

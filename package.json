@@ -1,0 +1,14 @@
+{
+  "name": "vellum-designer",
+  "version": "0.1.0",
+  "description": "Vellum — a local-first, WebGPU-powered design editor for macOS with native SQLite persistence",
+  "type": "module",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.1.0"
+  },
+  "dependencies": {}
+}

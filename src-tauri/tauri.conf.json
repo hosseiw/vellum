@@ -1,0 +1,54 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Vellum",
+  "version": "0.1.0",
+  "identifier": "com.vellum.designer",
+  "build": {
+    "beforeBuildCommand": "python3 scripts/ci.py --skip-browser",
+    "frontendDist": "../_site"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Vellum",
+        "url": "editor.html",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 960,
+        "minHeight": 640,
+        "resizable": true,
+        "fullscreen": false,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"],
+    "category": "GraphicsAndDesign",
+    "shortDescription": "Vellum Vector Design Editor",
+    "longDescription": "A fast, local-first vector design editor powered by WebGPU and SQLite.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "fileAssociations": [
+      {
+        "ext": ["vellum"],
+        "name": "Vellum Design Document",
+        "description": "Vellum Vector Design Document",
+        "role": "Editor"
+      }
+    ],
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    }
+  }
+}

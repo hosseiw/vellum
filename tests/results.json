@@ -1,0 +1,163 @@
+{
+  "mode": "inline opaque-origin browser",
+  "passed": 36,
+  "results": [
+    {
+      "name": "Editor initializes with real scene graph",
+      "passed": true
+    },
+    {
+      "name": "Renderer produces scene instances",
+      "passed": true
+    },
+    {
+      "name": "Page navigation",
+      "passed": true
+    },
+    {
+      "name": "Rectangle tool pointer drawing",
+      "passed": true
+    },
+    {
+      "name": "Pointer dragging updates geometry",
+      "passed": true
+    },
+    {
+      "name": "Undo restores transform",
+      "passed": true
+    },
+    {
+      "name": "Redo reapplies transform",
+      "passed": true
+    },
+    {
+      "name": "Inspector dimension binding",
+      "passed": true
+    },
+    {
+      "name": "Canvas resize handles",
+      "passed": true
+    },
+    {
+      "name": "Rotation transforms world bounds",
+      "passed": true
+    },
+    {
+      "name": "Deep duplication uses distinct IDs",
+      "passed": true
+    },
+    {
+      "name": "Grouping preserves hierarchy",
+      "passed": true
+    },
+    {
+      "name": "Ungroup preserves children",
+      "passed": true
+    },
+    {
+      "name": "Multiline Unicode text editing commits",
+      "passed": true
+    },
+    {
+      "name": "Typography properties bind to the document",
+      "passed": true
+    },
+    {
+      "name": "Components create linked instances",
+      "passed": true
+    },
+    {
+      "name": "Main component changes propagate",
+      "passed": true
+    },
+    {
+      "name": "Instance overrides survive source edits",
+      "passed": true
+    },
+    {
+      "name": "Horizontal auto layout and spacing",
+      "passed": true
+    },
+    {
+      "name": "Vertical auto layout",
+      "passed": true
+    },
+    {
+      "name": "Frame resize constraints",
+      "passed": true
+    },
+    {
+      "name": "Pen creates editable B\u00e9zier geometry",
+      "passed": true
+    },
+    {
+      "name": "Image import embeds image data",
+      "passed": true
+    },
+    {
+      "name": "Undo document replacement restores image assets",
+      "passed": true
+    },
+    {
+      "name": "Portable JSON validates and round-trips",
+      "passed": true
+    },
+    {
+      "name": "Cyclic document input is rejected",
+      "passed": true
+    },
+    {
+      "name": "HTML-injection layer IDs are rejected",
+      "passed": true
+    },
+    {
+      "name": "SVG export is well-formed and includes vector/text nodes",
+      "passed": true
+    },
+    {
+      "name": "PNG export produces real pixel content",
+      "passed": true
+    },
+    {
+      "name": "Frame presentation renders a preview",
+      "passed": true
+    },
+    {
+      "name": "Light appearance switches semantic tokens",
+      "passed": true
+    },
+    {
+      "name": "Command palette executes commands",
+      "passed": true
+    },
+    {
+      "name": "Dark appearance restores semantic tokens",
+      "passed": true
+    },
+    {
+      "name": "Responsive editor has no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "5,000-shape scene renders and remains editable",
+      "passed": true
+    },
+    {
+      "name": "No uncaught browser errors",
+      "passed": true
+    }
+  ],
+  "stressScene": {
+    "backend": "Canvas 2D",
+    "instances": 5000,
+    "visibleLayers": 5000,
+    "cpuSubmissionMs": 159.69999999995343,
+    "drawCalls": 5000,
+    "gpuError": "WebGPU unavailable",
+    "secureContext": false
+  },
+  "limitations": [
+    "GPU execution was not validated in inline mode.",
+    "Opaque-origin inline mode cannot validate persistent browser storage."
+  ]
+}

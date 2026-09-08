@@ -1,0 +1,10 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+node_modules/
+.venv/
+_site/
+test-results/
+/Vellum.html
+src-tauri/target/
+releases/*.dmg
