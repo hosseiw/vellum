@@ -67,7 +67,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
       - name: Upload GitHub Pages artifact
-        if: github.repository == 'wieslawsoltes/Vellum' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
           path: _site
@@ -75,7 +75,7 @@ jobs:
 
   deploy:
     name: Publish GitHub Pages
-    if: github.repository == 'wieslawsoltes/Vellum' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 10
