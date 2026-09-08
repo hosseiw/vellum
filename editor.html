@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#202023">
+  <meta name="description" content="Vellum — a local-first, WebGPU-powered design editor. Plain HTML, CSS and JavaScript.">
+  <title>Vellum — a little more possible.</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='11' fill='%238b6cff'/%3E%3Cpath d='m9 11 10 20 12-20h-7l-5 10-5-10z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-section">
+      <button class="brand" id="main-menu" aria-label="Vellum menu" title="Vellum menu"><svg width="23" height="23" viewBox="0 0 32 32"><path d="M4 7h7l5 11 5-11h7L17 28h-3Z" fill="currentColor"/></svg><span>vellum</span><span class="brand-chevron">⌄</span></button>
+      <div class="top-divider"></div>
+      <button class="icon-button" id="projects-btn" title="Projects Manager (⌘P)" aria-label="Projects Manager"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg></button>
+      <button class="icon-button" id="toggle-left" title="Toggle layers panel" aria-label="Toggle layers panel" data-icon="panel"></button>
+    </div>
+    <div class="file-breadcrumb"><span class="muted">Workspace</span><span class="crumb-slash">/</span><button id="file-name" title="Rename document">Forma · Product design</button><span class="file-chevron">⌄</span><span class="save-indicator" id="save-indicator"><i></i> Saved locally</span></div>
+    <div class="top-actions"><span class="local-badge">LOCAL FILE</span><button class="avatar" id="profile" title="Local-first · no account required">Y</button><button class="icon-button" id="present" title="Present frames" aria-label="Present frames" data-icon="play"></button><button class="share-button" id="share" title="Save a portable Vellum file">Export <span data-icon="arrowUpRight"></span></button></div>
+  </header>
+  <main class="workspace">
+    <aside class="left-panel" id="left-panel" aria-label="Pages and layers">
+      <div class="left-heading"><span>Design file</span><button class="icon-button small" id="search-button" title="Search layers" aria-label="Search layers" data-icon="search"></button></div>
+      <div class="left-tabs"><button class="active" data-left-tab="layers">Layers</button><button data-left-tab="assets">Assets</button><button class="icon-button small" id="collapse-all" title="Collapse layers" aria-label="Collapse layers" data-icon="collapse"></button></div>
+      <div class="layer-search hidden" id="layer-search"><span data-icon="search"></span><input id="search-layers" placeholder="Find a layer…" aria-label="Find a layer"></div>
+      <div class="pages-heading"><span>Pages</span><button class="icon-button small" id="add-page" title="Add page" aria-label="Add page" data-icon="plus"></button></div>
+      <div id="page-list" class="page-list"></div>
+      <div class="layers-heading"><span id="tree-heading">Layers</span><span class="muted" id="layer-count"></span></div>
+      <div id="layer-tree" class="layer-tree" role="tree" aria-label="Layers"></div>
+      <div id="assets-panel" class="assets-panel hidden"></div>
+      <div class="left-footer"><div class="engine-dot"></div><span id="engine-label">Starting renderer</span><button class="icon-button small" id="settings" title="Editor settings" aria-label="Editor settings" data-icon="sliders"></button></div>
+    </aside>
+    <section class="canvas-area" id="canvas-area" aria-label="Design canvas">
+      <div class="canvas-world" id="canvas-world"></div>
+      <canvas id="scene" aria-label="Editable design canvas"></canvas>
+      <canvas id="overlay" tabindex="0" aria-label="Canvas interaction area"></canvas>
+      <div class="canvas-topline"><span class="canvas-crumb" id="canvas-page-name">Design exploration</span><button class="canvas-pill" id="canvas-status"><i></i><span>All changes stay on this device</span></button></div>
+      <div id="text-editor" contenteditable="plaintext-only" class="text-editor hidden" role="textbox" aria-multiline="true" spellcheck="false"></div>
+      <div class="canvas-footer"><span class="canvas-hint" id="canvas-hint">Space to pan <span>·</span> ⌘ scroll to zoom <span>·</span> ? for shortcuts</span><span class="performance" id="performance"></span></div>
+      <div class="floating-toolbar" id="toolbar" role="toolbar" aria-label="Design tools">
+        <button class="tool active" data-tool="select" title="Move (V)" aria-label="Move" data-icon="cursor"></button>
+        <button class="tool" data-tool="frame" title="Frame (F)" aria-label="Frame" data-icon="frame"></button>
+        <div class="toolbar-divider"></div>
+        <button class="tool" data-tool="rect" title="Rectangle (R)" aria-label="Rectangle" data-icon="rect"></button>
+        <button class="tool" data-tool="ellipse" title="Ellipse (O)" aria-label="Ellipse" data-icon="ellipse"></button>
+        <button class="tool" data-tool="line" title="Line (L)" aria-label="Line" data-icon="line"></button>
+        <button class="tool" data-tool="pen" title="Pen (P) · click points, Enter to finish" aria-label="Pen" data-icon="pen"></button>
+        <button class="tool" data-tool="text" title="Text (T)" aria-label="Text" data-icon="text"></button>
+        <div class="toolbar-divider"></div>
+        <button class="tool" data-tool="hand" title="Hand (H)" aria-label="Hand" data-icon="hand"></button>
+        <button class="tool" id="insert-image" title="Place image (⇧⌘K)" aria-label="Place image" data-icon="image"></button>
+        <div class="toolbar-divider"></div>
+        <button class="tool accent-tool" id="command-button" title="Commands (⌘K)" aria-label="Command palette" data-icon="sparkles"></button>
+      </div>
+      <div class="zoom-controls"><button id="zoom-out" class="icon-button small" title="Zoom out" aria-label="Zoom out" data-icon="minus"></button><button id="zoom-value" title="Zoom options">100%</button><button id="zoom-in" class="icon-button small" title="Zoom in" aria-label="Zoom in" data-icon="plus"></button></div>
+      <div class="welcome-tip" id="welcome-tip"><div class="welcome-icon" data-icon="sparkles"></div><div><strong>A little more possible.</strong><p>Your next idea starts here. Everything is editable.</p></div><button class="icon-button small" id="dismiss-tip" title="Dismiss" aria-label="Dismiss" data-icon="close"></button></div>
+    </section>
+    <aside class="right-panel" id="right-panel" aria-label="Properties inspector">
+      <div class="inspector-tabs"><button class="active" data-inspector-tab="design">Design</button><button data-inspector-tab="prototype">Prototype</button><button class="icon-button small" id="theme-toggle" title="Toggle light / dark theme" aria-label="Toggle theme" data-icon="sun"></button></div>
+      <div class="inspector-scroll" id="inspector"></div>
+      <div class="inspector-footer"><span>Made for your next big idea.</span><button class="icon-button small" id="help" title="Keyboard shortcuts" aria-label="Keyboard shortcuts" data-icon="help"></button></div>
+    </aside>
+  </main>
+  <div id="context-menu" class="context-menu hidden" role="menu"></div>
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <div id="modal-backdrop" class="modal-backdrop hidden"><section id="modal" class="modal" role="dialog" aria-modal="true" aria-label="Editor dialog"></section></div>
+  <div id="presentation" class="presentation hidden"><div class="presentation-toolbar"><span>vellum <span class="muted">/ Preview</span></span><span id="presentation-title"></span><div><button id="prev-frame" class="icon-button" aria-label="Previous frame" data-icon="arrowLeft"></button><span id="presentation-count"></span><button id="next-frame" class="icon-button" aria-label="Next frame" data-icon="arrowRight"></button><button id="close-presentation" class="icon-button" aria-label="Close preview" data-icon="close"></button></div></div><div class="presentation-stage" id="presentation-stage"><canvas id="presentation-canvas"></canvas></div></div>
+  <input type="file" id="file-input" accept=".vellum,.json,application/json" hidden>
+  <input type="file" id="image-input" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden>
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
