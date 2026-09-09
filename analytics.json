@@ -1,0 +1,4 @@
+{
+  "status": "not_configured",
+  "message": "Analytics have not been published yet. Run the Update analytics workflow after configuring ANALYTICS_TOKEN."
+}

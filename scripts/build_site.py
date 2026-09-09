@@ -35,7 +35,7 @@ def main() -> None:
         shutil.rmtree(SITE)
     SITE.mkdir()
     # Explicit allow-list: never publish .git, workflows, tests, or local data.
-    for name in ("index.html", "editor.html", "styles.css", "Vellum.html", "LICENSE"):
+    for name in ("index.html", "editor.html", "analytics.html", "analytics.json", "styles.css", "Vellum.html", "LICENSE"):
         if (ROOT / name).exists():
             shutil.copy2(ROOT / name, SITE / name)
     shutil.copytree(ROOT / "src", SITE / "src")

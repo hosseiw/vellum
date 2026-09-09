@@ -32,6 +32,12 @@
 - **System File Association**: The `.vellum` format is registered with macOS Finder as a default document type.
 - **Zero Cloud & Zero Telemetry**: 100% offline. No accounts, no subscriptions, no tracking.
 
+### Site analytics
+
+The public site exposes an [Analytics dashboard](https://hosseiw.github.io/vellum/analytics.html) populated by GitHub Actions. It reports cumulative GitHub release-asset downloads and GitHub Pages repository views from the last 14 days; the editor remains local-first and does not send telemetry.
+
+To enable page-view collection, add a repository secret named `ANALYTICS_TOKEN` with a fine-grained token that can read repository traffic. The scheduled Pages workflow refreshes the generated `analytics.json` before deployment.
+
 ---
 
 ## 🚀 Quick Start

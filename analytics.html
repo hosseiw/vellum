@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vellum analytics</title>
+  <style>
+    :root { color-scheme: dark; --bg: #111116; --panel: #1c1c23; --border: #34343e; --text: #f4f2f7; --muted: #aaa6b5; --accent: #a38bff; --green: #8fd2ae; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--text); background: radial-gradient(circle at 50% -10%, #30254d, var(--bg) 48%); font: 15px/1.5 Georgia, serif; }
+    main { width: min(920px, calc(100% - 40px)); margin: 0 auto; padding: 52px 0 80px; }
+    nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 80px; font: 13px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    nav a { color: var(--muted); text-decoration: none; } nav a:hover { color: var(--text); }
+    .brand { color: var(--text); font-weight: 700; letter-spacing: .04em; }
+    .eyebrow { color: var(--accent); font: 11px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { max-width: 650px; margin: 12px 0 16px; font-size: clamp(42px, 8vw, 76px); line-height: .98; font-weight: 400; letter-spacing: -.04em; }
+    .intro { max-width: 590px; color: var(--muted); font-size: 18px; }
+    .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 48px; }
+    .metric { padding: 26px; background: color-mix(in srgb, var(--panel) 90%, transparent); border: 1px solid var(--border); border-radius: 8px; }
+    .metric-label { color: var(--muted); font: 12px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+    .metric-value { margin-top: 12px; color: var(--green); font: 700 clamp(38px, 7vw, 64px)/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: -.05em; }
+    .metric-note, .status { margin-top: 12px; color: var(--muted); font-size: 13px; }
+    .details { margin-top: 18px; padding: 18px 22px; border-top: 1px solid var(--border); color: var(--muted); font: 13px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .details a { color: var(--accent); }
+    @media (max-width: 620px) { main { width: min(100% - 28px, 920px); padding-top: 28px; } nav { margin-bottom: 56px; } .metrics { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <nav><a class="brand" href="./index.html">VELLUM</a><a href="./index.html">Back to site</a></nav>
+    <div class="eyebrow">Project pulse</div>
+    <h1>See what is reaching people.</h1>
+    <p class="intro">A lightweight view of downloads and visits for the public Vellum site. The editor itself remains local-first and does not send telemetry.</p>
+    <section class="metrics" aria-label="Analytics metrics">
+      <article class="metric"><div class="metric-label">Release downloads</div><div class="metric-value" id="downloads">—</div><div class="metric-note">All GitHub release assets, cumulative</div></article>
+      <article class="metric"><div class="metric-label">Page views</div><div class="metric-value" id="views">—</div><div class="metric-note" id="views-note">GitHub repository views over the last 14 days</div></article>
+    </section>
+    <div class="status" id="status" role="status">Loading the latest snapshot…</div>
+    <div class="details">Updated by GitHub Actions. Counts come from the <a href="https://docs.github.com/en/rest/releases/releases#list-releases" target="_blank" rel="noopener">GitHub Releases API</a> and <a href="https://docs.github.com/en/rest/metrics/traffic" target="_blank" rel="noopener">repository traffic API</a>.</div>
+  </main>
+  <script>
+    const format = value => typeof value === 'number' ? new Intl.NumberFormat().format(value) : '—';
+    fetch('./analytics.json', { cache: 'no-store' }).then(response => {
+      if (!response.ok) throw new Error('Snapshot unavailable');
+      return response.json();
+    }).then(data => {
+      document.querySelector('#downloads').textContent = format(data.downloads?.total);
+      document.querySelector('#views').textContent = format(data.page_views?.count);
+      if (data.page_views?.period_days) document.querySelector('#views-note').textContent = `GitHub repository views over the last ${data.page_views.period_days} days`;
+      document.querySelector('#status').textContent = data.generated_at ? `Snapshot from ${new Date(data.generated_at).toLocaleString()}` : (data.message || 'No snapshot has been published yet.');
+    }).catch(error => { document.querySelector('#status').textContent = error.message; });
+  </script>
+</body>
+</html>
