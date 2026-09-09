@@ -58,7 +58,7 @@ jobs:
             echo "ANALYTICS_TOKEN is not configured; keeping the seed snapshot."
           fi
       - name: Validate, build and run browser integration tests
-        # Test the actual Pages output at /Vellum/?canvas, not an inline fixture.
+        # Test the actual Pages editor output at /Vellum/editor.html?canvas, not an inline fixture.
         # Hosted CI asserts the deterministic Canvas 2D fallback, not hardware WebGPU.
         run: python scripts/ci.py
       - name: Upload browser reports and screenshots

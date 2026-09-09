@@ -40,7 +40,7 @@ def main() -> None:
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         try:
-            url = f"http://127.0.0.1:{server.server_port}/Vellum/?canvas"
+            url = f"http://127.0.0.1:{server.server_port}/Vellum/editor.html?canvas"
             run(sys.executable, "tests/smoke.py", "--url", url,
                 "--expect-backend", "Canvas 2D", "--output-dir", "test-results")
         finally:
